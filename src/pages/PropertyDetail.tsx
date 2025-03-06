@@ -99,7 +99,7 @@ const PropertyDetail = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               {/* Property Gallery */}
-              <PropertyGallery images={property.images} />
+              <PropertyGallery images={property.images} title={property.title} />
               
               {/* Property Info */}
               <div className="mt-6">
