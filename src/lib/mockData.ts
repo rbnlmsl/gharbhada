@@ -1,5 +1,4 @@
-
-import { Property } from "../types";
+import { Property, PropertyFilter } from "../types";
 
 export const properties: Property[] = [
   {
@@ -200,31 +199,101 @@ export function getPropertyById(id: string): Property | undefined {
   return properties.find(property => property.id === id);
 }
 
-export function getFilteredProperties(filter: {
-  location?: string;
-  priceMin?: number;
-  priceMax?: number;
-  bedrooms?: number;
-  propertyType?: string;
-}): Property[] {
-  return properties.filter(property => {
-    if (filter.location && 
-        !property.city.toLowerCase().includes(filter.location.toLowerCase()) && 
-        !property.address.toLowerCase().includes(filter.location.toLowerCase())) {
-      return false;
+export function getFilteredProperties(filter: PropertyFilter): Property[] {
+  let filteredProperties = [...properties];
+  
+  // Apply location filter
+  if (filter.location) {
+    const locationLower = filter.location.toLowerCase();
+    filteredProperties = filteredProperties.filter(property => 
+      property.city.toLowerCase().includes(locationLower) || 
+      property.address.toLowerCase().includes(locationLower) ||
+      property.country.toLowerCase().includes(locationLower)
+    );
+  }
+  
+  // Apply price range filters
+  if (filter.priceMin !== undefined) {
+    filteredProperties = filteredProperties.filter(property => 
+      property.price >= filter.priceMin!
+    );
+  }
+  
+  if (filter.priceMax !== undefined) {
+    filteredProperties = filteredProperties.filter(property => 
+      property.price <= filter.priceMax!
+    );
+  }
+  
+  // Apply bedrooms filter
+  if (filter.bedrooms !== undefined) {
+    filteredProperties = filteredProperties.filter(property => 
+      property.bedrooms >= filter.bedrooms!
+    );
+  }
+  
+  // Apply bathrooms filter
+  if (filter.bathrooms !== undefined) {
+    filteredProperties = filteredProperties.filter(property => 
+      property.bathrooms >= filter.bathrooms!
+    );
+  }
+  
+  // Apply property type filter
+  if (filter.propertyType) {
+    filteredProperties = filteredProperties.filter(property => 
+      property.type === filter.propertyType
+    );
+  }
+  
+  // Apply area filters
+  if (filter.areaMin !== undefined) {
+    filteredProperties = filteredProperties.filter(property => 
+      property.area >= filter.areaMin!
+    );
+  }
+  
+  if (filter.areaMax !== undefined) {
+    filteredProperties = filteredProperties.filter(property => 
+      property.area <= filter.areaMax!
+    );
+  }
+  
+  // Apply features filter
+  if (filter.features && filter.features.length > 0) {
+    filteredProperties = filteredProperties.filter(property => 
+      filter.features!.every(feature => 
+        property.features.some(propertyFeature => 
+          propertyFeature.toLowerCase().includes(feature.toLowerCase())
+        )
+      )
+    );
+  }
+  
+  // Apply sorting
+  if (filter.sortBy) {
+    switch(filter.sortBy) {
+      case "price_asc":
+        filteredProperties.sort((a, b) => a.price - b.price);
+        break;
+      case "price_desc":
+        filteredProperties.sort((a, b) => b.price - a.price);
+        break;
+      case "newest":
+        filteredProperties.sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        break;
+      case "bedrooms_desc":
+        filteredProperties.sort((a, b) => b.bedrooms - a.bedrooms);
+        break;
+      default:
+        // Default to newest
+        filteredProperties.sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
     }
-    if (filter.priceMin && property.price < filter.priceMin) {
-      return false;
-    }
-    if (filter.priceMax && property.price > filter.priceMax) {
-      return false;
-    }
-    if (filter.bedrooms && property.bedrooms < filter.bedrooms) {
-      return false;
-    }
-    if (filter.propertyType && property.type !== filter.propertyType) {
-      return false;
-    }
-    return true;
-  });
+  }
+  
+  return filteredProperties;
 }

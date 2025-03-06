@@ -37,4 +37,7 @@ export interface PropertyFilter {
   propertyType?: string;
   areaMin?: number;
   areaMax?: number;
+  features?: string[];
+  availability?: string;
+  sortBy?: string;
 }

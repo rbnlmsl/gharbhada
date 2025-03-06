@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import PropertyDetail from "./pages/PropertyDetail";
+import PropertiesPage from "./pages/PropertiesPage";
 
 const queryClient = new QueryClient();
 
@@ -23,7 +24,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/property/:id" element={<PropertyDetail />} />
-            <Route path="/properties" element={<Index />} />
+            <Route path="/properties" element={<PropertiesPage />} />
             <Route path="/post-property" element={<Index />} /> {/* This will just point to Index for now */}
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
