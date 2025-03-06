@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
@@ -34,6 +35,7 @@ const Auth = () => {
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [registerRole, setRegisterRole] = useState<'tenant' | 'landlord' | 'agent'>('tenant');
 
   // Form validation
   const isLoginFormValid = loginEmail.trim() !== "" && loginPassword.trim() !== "";
@@ -64,7 +66,7 @@ const Auth = () => {
       return;
     }
     try {
-      await signUp(registerEmail, registerPassword, registerFullName);
+      await signUp(registerEmail, registerPassword, registerFullName, registerRole);
     } catch (error) {
       console.error("Registration error:", error);
     }
@@ -233,6 +235,27 @@ const Auth = () => {
                         required
                       />
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>I am a:</Label>
+                    <RadioGroup 
+                      value={registerRole} 
+                      onValueChange={(value) => setRegisterRole(value as 'tenant' | 'landlord' | 'agent')}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="tenant" id="tenant" />
+                        <Label htmlFor="tenant">Tenant (looking for property)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="landlord" id="landlord" />
+                        <Label htmlFor="landlord">Landlord (property owner)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="agent" id="agent" />
+                        <Label htmlFor="agent">Agent (property manager)</Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                 </CardContent>
                 <CardFooter>

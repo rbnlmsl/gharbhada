@@ -44,7 +44,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null;
       }
 
-      return data as UserProfile;
+      // Map database fields to UserProfile interface
+      const mappedProfile: UserProfile = {
+        id: data.id,
+        // Map is_landlord to role - this needs to be expanded in a real application
+        role: data.is_landlord ? 'landlord' : 'tenant',
+        full_name: data.full_name,
+        avatar_url: data.avatar_url
+      };
+
+      return mappedProfile;
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       return null;
@@ -136,6 +145,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             full_name: fullName,
             role: role,
+            // Map role to is_landlord for database compatibility
+            is_landlord: role === 'landlord' || role === 'agent',
           },
         },
       });
