@@ -2,11 +2,12 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
-import SearchBar from "@/components/SearchBar";
+import FixedSearchBar from "@/components/FixedSearchBar";
 import PropertyCard from "@/components/PropertyCard";
 import Footer from "@/components/Footer";
 import { properties } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [filteredProperties, setFilteredProperties] = useState(properties);
@@ -26,13 +27,13 @@ const Index = () => {
         <Hero />
         
         <div className="container mx-auto px-4 py-8">
-          <SearchBar />
+          <FixedSearchBar />
           
           <section className="mt-12">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Featured Properties</h2>
               <Button variant="outline" className="text-brand-blue">
-                View All Properties
+                <Link to="/properties">View All Properties</Link>
               </Button>
             </div>
             
@@ -52,7 +53,7 @@ const Index = () => {
                 List your property on gharbhada.com.np and connect with thousands of potential tenants looking for their next home.
               </p>
               <Button className="bg-brand-crimson hover:bg-brand-crimson/90">
-                List Your Property
+                <Link to="/post-property">List Your Property</Link>
               </Button>
             </div>
           </section>
