@@ -5,17 +5,17 @@ import Hero from "@/components/Hero";
 import SearchBar from "@/components/SearchBar";
 import PropertyCard from "@/components/PropertyCard";
 import Footer from "@/components/Footer";
-import { mockProperties } from "@/lib/mockData";
+import { properties } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 
 const Index = () => {
-  const [filteredProperties, setFilteredProperties] = useState(mockProperties);
+  const [filteredProperties, setFilteredProperties] = useState(properties);
 
   const handleSearch = (searchParams: any) => {
     console.log("Search params:", searchParams);
     // In a real app, this would filter properties based on search params
     // For now, we'll just use the mock data
-    setFilteredProperties(mockProperties);
+    setFilteredProperties(properties);
   };
 
   return (
@@ -26,7 +26,7 @@ const Index = () => {
         <Hero />
         
         <div className="container mx-auto px-4 py-8">
-          <SearchBar onSearch={handleSearch} />
+          <SearchBar />
           
           <section className="mt-12">
             <div className="flex justify-between items-center mb-6">
