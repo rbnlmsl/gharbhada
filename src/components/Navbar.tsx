@@ -18,7 +18,7 @@ import {
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, userProfile, signOut } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,6 +53,18 @@ const Navbar = () => {
       .join("")
       .toUpperCase()
       .substring(0, 2);
+  };
+
+  // Check if user is a landlord or agent
+  const isPropertyPoster = userProfile?.role === 'landlord' || userProfile?.role === 'agent';
+
+  // Function to handle button navigation
+  const handleActionButtonClick = () => {
+    if (isPropertyPoster) {
+      navigate("/post-property");
+    } else {
+      navigate("/properties");
+    }
   };
 
   return (
@@ -166,8 +178,9 @@ const Navbar = () => {
           
           <Button 
             className="bg-brand-crimson text-white px-4 py-2 rounded-md hover:opacity-90 transition-opacity"
+            onClick={handleActionButtonClick}
           >
-            Post Property
+            {isPropertyPoster ? "Post Property" : "Find Rental"}
           </Button>
         </div>
 
@@ -276,8 +289,12 @@ const Navbar = () => {
             
             <Button 
               className="bg-brand-crimson text-white px-6 py-3 rounded-md hover:opacity-90 transition-opacity text-xl"
+              onClick={() => {
+                handleActionButtonClick();
+                setIsOpen(false);
+              }}
             >
-              Post Property
+              {isPropertyPoster ? "Post Property" : "Find Rental"}
             </Button>
           </div>
         </div>
