@@ -1,15 +1,15 @@
 
 import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { 
-  Button,
-  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/";
+} from "@/components/ui/select";
 import { Search, MapPin, Home, BedDouble, Bath, Sliders } from "lucide-react";
 
 interface SearchBarProps {
