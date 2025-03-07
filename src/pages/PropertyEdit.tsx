@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase, typedSupabaseQuery } from "@/integrations/supabase/client";
+import { supabase, typedPropertyQuery } from "@/integrations/supabase/client";
 import { PropertyRow } from "@/types/property-types";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -20,7 +20,7 @@ const PropertyEdit = () => {
   const { data: property, isLoading, error } = useQuery({
     queryKey: ['property', id],
     queryFn: async () => {
-      const { data, error } = await typedSupabaseQuery<PropertyRow>("properties")
+      const { data, error } = await typedPropertyQuery()
         .select('*')
         .eq('id', id)
         .single();

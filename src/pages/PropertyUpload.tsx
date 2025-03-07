@@ -5,17 +5,35 @@ import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PropertyForm from "@/components/PropertyForm";
+import { useToast } from "@/hooks/use-toast";
 
 const PropertyUpload = () => {
   const { user, userProfile, loading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Redirect if user is not logged in or isn't a landlord/agent
   useEffect(() => {
-    if (!loading && (!user || (userProfile && userProfile.role !== 'landlord' && userProfile.role !== 'agent'))) {
-      navigate('/auth');
+    if (!loading) {
+      if (!user) {
+        // User is not logged in, redirect to auth page
+        toast({
+          title: "Authentication Required",
+          description: "You need to sign in to upload a property.",
+          variant: "destructive",
+        });
+        navigate('/auth');
+      } else if (userProfile && userProfile.role !== 'landlord' && userProfile.role !== 'agent') {
+        // User is logged in but not a landlord or agent
+        toast({
+          title: "Unauthorized",
+          description: "Only landlords and agents can upload properties.",
+          variant: "destructive",
+        });
+        navigate('/');
+      }
     }
-  }, [user, userProfile, loading, navigate]);
+  }, [user, userProfile, loading, navigate, toast]);
 
   if (loading) {
     return (
@@ -30,6 +48,11 @@ const PropertyUpload = () => {
         <Footer />
       </div>
     );
+  }
+
+  // Only show the form if user is logged in and is a landlord or agent
+  if (!user || (userProfile && userProfile.role !== 'landlord' && userProfile.role !== 'agent')) {
+    return null; // This return should not be visible as useEffect should redirect
   }
 
   return (
