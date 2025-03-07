@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, typedSupabaseQuery } from "@/integrations/supabase/client";
 import { Property } from "@/types";
+import { PropertyRow } from "@/types/property-types";
 import { ChevronRight, Home, Edit, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -28,8 +30,7 @@ const PropertyDetail = () => {
     queryFn: async () => {
       try {
         // Try to fetch from Supabase first
-        const { data, error } = await supabase
-          .from("properties")
+        const { data, error } = await typedSupabaseQuery<PropertyRow>("properties")
           .select('*')
           .eq('id', id)
           .single();
@@ -101,8 +102,7 @@ const PropertyDetail = () => {
     }
     
     try {
-      const { error } = await supabase
-        .from("properties")
+      const { error } = await typedSupabaseQuery<PropertyRow>("properties")
         .delete()
         .eq('id', id);
         

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, typedSupabaseQuery } from "@/integrations/supabase/client";
+import { PropertyRow } from "@/types/property-types";
 import Navbar from "@/components/Navbar";
 import FixedSearchBar from "@/components/FixedSearchBar";
 import PropertyCard from "@/components/PropertyCard";
@@ -51,8 +52,7 @@ const PropertiesPage = () => {
     
     try {
       // Start with Supabase query
-      let query = supabase
-        .from("properties")
+      let query = typedSupabaseQuery<PropertyRow>("properties")
         .select('*', { count: 'exact' })
         .eq('published', true);
       
