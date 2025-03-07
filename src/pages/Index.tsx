@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 const Index = () => {
   const [filteredProperties, setFilteredProperties] = useState(properties);
 
-  const handleSearch = (searchParams: any) => {
+  const handleSearch = (searchParams: Record<string, string>) => {
     console.log("Search params:", searchParams);
     // In a real app, this would filter properties based on search params
     // For now, we'll just use the mock data
@@ -27,7 +27,7 @@ const Index = () => {
         <Hero />
         
         <div className="container mx-auto px-4 py-8">
-          <FixedSearchBar />
+          <FixedSearchBar onSearch={handleSearch} />
           
           <section className="mt-12">
             <div className="flex justify-between items-center mb-6">
