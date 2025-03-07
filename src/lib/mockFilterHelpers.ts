@@ -1,4 +1,3 @@
-
 import { Property, PropertyFilter } from "@/types";
 
 /**
@@ -13,14 +12,23 @@ export const filterByPropertyType = (properties: Property[], propertyType?: stri
 };
 
 /**
- * Filters properties by exact location match
+ * Filters properties by location - prioritizes exact city match
  */
 export const filterByLocation = (properties: Property[], location?: string): Property[] => {
   if (!location) return properties;
   
-  // Try to match by exact city or address (case insensitive)
+  // First try to find exact city matches (case insensitive)
+  const cityMatches = properties.filter(property => 
+    property.city.toLowerCase() === location.toLowerCase()
+  );
+  
+  // If we found exact city matches, return those
+  if (cityMatches.length > 0) {
+    return cityMatches;
+  }
+  
+  // Otherwise, fall back to address matching
   return properties.filter(property => 
-    property.city.toLowerCase() === location.toLowerCase() ||
     property.address.toLowerCase().includes(location.toLowerCase())
   );
 };

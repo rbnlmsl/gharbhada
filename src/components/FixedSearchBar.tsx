@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
     e.preventDefault();
     
     const params: Record<string, string> = {};
-    if (location) params.location = location;
+    if (location.trim()) params.location = location.trim();
     if (propertyType && propertyType !== "any") params.type = propertyType;
     if (bedrooms && bedrooms !== "any") params.beds = bedrooms;
     if (bathrooms && bathrooms !== "any") params.baths = bathrooms;
