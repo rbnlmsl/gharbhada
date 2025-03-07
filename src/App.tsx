@@ -1,38 +1,40 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import PropertyDetail from "./pages/PropertyDetail";
-import PropertiesPage from "./pages/PropertiesPage";
+import { Toaster } from "@/components/ui/toaster";
+
+import Index from "@/pages/Index";
+import PropertiesPage from "@/pages/PropertiesPage";
+import PropertyDetail from "@/pages/PropertyDetail";
+import PropertyUpload from "@/pages/PropertyUpload";
+import PropertyEdit from "@/pages/PropertyEdit";
+import Auth from "@/pages/Auth";
+import NotFound from "@/pages/NotFound";
+
+import "@/App.css";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/property/:id" element={<PropertyDetail />} />
             <Route path="/properties" element={<PropertiesPage />} />
-            <Route path="/post-property" element={<Index />} /> {/* This will just point to Index for now */}
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/property/:id" element={<PropertyDetail />} />
+            <Route path="/property/upload" element={<PropertyUpload />} />
+            <Route path="/property/edit/:id" element={<PropertyEdit />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <Toaster />
         </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

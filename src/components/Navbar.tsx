@@ -1,305 +1,181 @@
 
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { Menu, X, Home, Search, User, MapPin, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import useMobile from "@/hooks/use-mobile";
+import { Menu, X, User, LogOut, Home, Search, PlusCircle } from "lucide-react";
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const { user, userProfile, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMobile = useMobile();
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
+  // Detect scroll position for navbar styling
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
+      const isScrolled = window.scrollY > 10;
+      if (isScrolled !== scrolled) {
+        setScrolled(isScrolled);
       }
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [scrolled]);
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-  };
-
-  const getInitials = (name?: string) => {
-    if (!name) return "U";
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-  };
-
-  // Check if user is a landlord or agent
-  const isPropertyPoster = userProfile?.role === 'landlord' || userProfile?.role === 'agent';
-
-  // Function to handle button navigation
-  const handleActionButtonClick = () => {
-    if (isPropertyPoster) {
-      navigate("/post-property");
-    } else {
-      navigate("/properties");
+  // Handle responsive menu
+  useEffect(() => {
+    if (!isMobile && isOpen) {
+      setIsOpen(false);
     }
+  }, [isMobile, isOpen]);
+
+  // Close menu when route changes
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
   };
+
+  const isLandlordOrAgent = userProfile && (userProfile.role === 'landlord' || userProfile.role === 'agent');
+
+  const NavLinks = () => (
+    <>
+      <Link to="/" className="font-medium text-gray-700 hover:text-brand-blue transition-colors">Home</Link>
+      <Link to="/properties" className="font-medium text-gray-700 hover:text-brand-blue transition-colors">Properties</Link>
+      {isLandlordOrAgent && (
+        <Link to="/property/upload" className="font-medium text-gray-700 hover:text-brand-blue transition-colors flex items-center">
+          <PlusCircle size={16} className="mr-1" />
+          List Property
+        </Link>
+      )}
+    </>
+  );
 
   return (
-    <nav 
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        isScrolled ? 
-          "bg-white/90 backdrop-blur-md shadow-sm py-3" : 
-          "bg-transparent py-5"
-      )}
+    <header 
+      className={`sticky top-0 z-40 w-full transition-all ${
+        scrolled ? 'bg-white shadow-md py-3' : 'bg-white/95 backdrop-blur-sm py-4'
+      }`}
     >
-      <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-        <Link 
-          to="/" 
-          className="flex items-center space-x-2 transition-all duration-300"
-        >
-          <div className="relative">
-            <div className="h-8 w-8 bg-brand-blue rounded-md flex items-center justify-center">
-              <Home size={16} className="text-white" />
-            </div>
-            <div className="absolute -top-1 -right-1 h-3 w-3 bg-brand-crimson rounded-full"></div>
-          </div>
-          <span className={cn(
-            "text-xl font-bold transition-all duration-300",
-            isScrolled ? "text-brand-blue" : "text-white"
-          )}>
-            gharbhada
-            <span className="text-brand-crimson">.com.np</span>
-          </span>
+      <div className="container px-4 mx-auto flex justify-between items-center">
+        {/* Logo */}
+        <Link to="/" className="flex items-center space-x-2">
+          <Home className="text-brand-blue w-6 h-6" />
+          <span className="font-bold text-xl text-gray-900">RentEase</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6">
-          <Link 
-            to="/" 
-            className={cn(
-              "flex items-center space-x-1 font-medium hover:text-brand-crimson transition-colors",
-              isScrolled ? "text-gray-700" : "text-white"
-            )}
-          >
-            <Home size={16} />
-            <span>Home</span>
-          </Link>
-          <Link 
-            to="/properties" 
-            className={cn(
-              "flex items-center space-x-1 font-medium hover:text-brand-crimson transition-colors",
-              isScrolled ? "text-gray-700" : "text-white"
-            )}
-          >
-            <Search size={16} />
-            <span>Properties</span>
-          </Link>
-          <Link 
-            to="/locations" 
-            className={cn(
-              "flex items-center space-x-1 font-medium hover:text-brand-crimson transition-colors",
-              isScrolled ? "text-gray-700" : "text-white"
-            )}
-          >
-            <MapPin size={16} />
-            <span>Locations</span>
-          </Link>
-          
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  className={cn(
-                    "flex items-center space-x-2 hover:bg-transparent hover:text-brand-crimson",
-                    isScrolled ? "text-gray-700" : "text-white"
-                  )}
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.user_metadata.avatar_url} />
-                    <AvatarFallback className="bg-brand-blue text-white">
-                      {getInitials(user.user_metadata.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium">Account</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/profile" className="cursor-pointer">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/favorites" className="cursor-pointer">Favorites</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/my-properties" className="cursor-pointer">My Properties</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-500 cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Button 
-              className="bg-brand-crimson hover:bg-brand-crimson/90 text-white"
-              onClick={() => navigate("/auth")}
-            >
-              Login / Register
-            </Button>
-          )}
-          
-          <Button 
-            className="bg-brand-crimson text-white px-4 py-2 rounded-md hover:opacity-90 transition-opacity"
-            onClick={handleActionButtonClick}
-          >
-            {isPropertyPoster ? "Post Property" : "Find Rental"}
-          </Button>
-        </div>
+        {/* Desktop Menu */}
+        <nav className="hidden md:flex items-center space-x-8">
+          <NavLinks />
+        </nav>
 
-        {/* Mobile Menu Button */}
-        <button 
-          className="md:hidden flex items-center text-gray-700" 
-          onClick={toggleMenu}
-        >
-          {isOpen ? (
-            <X size={24} className={isScrolled ? "text-gray-700" : "text-white"} />
-          ) : (
-            <Menu size={24} className={isScrolled ? "text-gray-700" : "text-white"} />
-          )}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      <div 
-        className={cn(
-          "fixed top-0 left-0 w-full h-screen bg-white transition-all duration-300 ease-in-out transform z-40",
-          isOpen ? "translate-y-0" : "-translate-y-full"
-        )}
-      >
-        <div className="container mx-auto px-4 py-5 h-full flex flex-col">
-          <div className="flex justify-between items-center">
-            <Link to="/" className="flex items-center space-x-2" onClick={() => setIsOpen(false)}>
-              <div className="relative">
-                <div className="h-8 w-8 bg-brand-blue rounded-md flex items-center justify-center">
-                  <Home size={16} className="text-white" />
-                </div>
-                <div className="absolute -top-1 -right-1 h-3 w-3 bg-brand-crimson rounded-full"></div>
-              </div>
-              <span className="text-xl font-bold text-brand-blue">
-                gharbhada
-                <span className="text-brand-crimson">.com.np</span>
-              </span>
-            </Link>
-            <button onClick={toggleMenu}>
-              <X size={24} className="text-gray-700" />
-            </button>
-          </div>
-          <div className="flex flex-col space-y-6 mt-12 items-center">
-            <Link 
-              to="/" 
-              className="text-xl font-medium text-gray-700 hover:text-brand-crimson flex items-center space-x-2"
-              onClick={() => setIsOpen(false)}
-            >
-              <Home size={20} />
-              <span>Home</span>
-            </Link>
-            <Link 
-              to="/properties" 
-              className="text-xl font-medium text-gray-700 hover:text-brand-crimson flex items-center space-x-2"
-              onClick={() => setIsOpen(false)}
-            >
-              <Search size={20} />
-              <span>Properties</span>
-            </Link>
-            <Link 
-              to="/locations" 
-              className="text-xl font-medium text-gray-700 hover:text-brand-crimson flex items-center space-x-2"
-              onClick={() => setIsOpen(false)}
-            >
-              <MapPin size={20} />
-              <span>Locations</span>
+        {/* Right side buttons */}
+        <div className="flex items-center">
+          {/* Desktop buttons */}
+          <div className="hidden md:flex items-center space-x-3">
+            <Link to="/properties">
+              <Button variant="outline" size="sm" className="flex items-center">
+                <Search size={16} className="mr-1" />
+                Find Properties
+              </Button>
             </Link>
             
             {user ? (
-              <>
-                <Link 
-                  to="/profile" 
-                  className="text-xl font-medium text-gray-700 hover:text-brand-crimson flex items-center space-x-2"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.user_metadata.avatar_url} />
-                    <AvatarFallback className="bg-brand-blue text-white">
-                      {getInitials(user.user_metadata.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span>Profile</span>
-                </Link>
-                <Button
-                  variant="ghost"
-                  className="text-xl font-medium text-red-500 hover:text-red-700 flex items-center space-x-2"
-                  onClick={() => {
-                    handleSignOut();
-                    setIsOpen(false);
-                  }}
-                >
-                  <LogOut size={20} />
-                  <span>Logout</span>
-                </Button>
-              </>
+              <div className="flex items-center space-x-3">
+                {isLandlordOrAgent && (
+                  <Link to="/property/upload">
+                    <Button variant="outline" size="sm">
+                      List Property
+                    </Button>
+                  </Link>
+                )}
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => navigate('/profile')}
+                  >
+                    <User size={16} className="mr-1" />
+                    {userProfile?.full_name || user.email}
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={handleLogout}
+                  >
+                    <LogOut size={16} className="mr-1" />
+                    Logout
+                  </Button>
+                </div>
+              </div>
             ) : (
-              <Button 
-                className="bg-brand-blue text-white px-6 py-3 rounded-md hover:opacity-90 transition-opacity text-xl"
-                onClick={() => {
-                  navigate("/auth");
-                  setIsOpen(false);
-                }}
-              >
-                Login / Register
+              <Button onClick={() => navigate('/auth')}>
+                Sign In
               </Button>
             )}
-            
-            <Button 
-              className="bg-brand-crimson text-white px-6 py-3 rounded-md hover:opacity-90 transition-opacity text-xl"
-              onClick={() => {
-                handleActionButtonClick();
-                setIsOpen(false);
-              }}
-            >
-              {isPropertyPoster ? "Post Property" : "Find Rental"}
-            </Button>
           </div>
+          
+          {/* Mobile menu button */}
+          <button 
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden ml-2 p-2 text-gray-700 hover:text-brand-blue transition-colors"
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
-    </nav>
+
+      {/* Mobile menu */}
+      {isOpen && (
+        <div className="md:hidden bg-white border-t">
+          <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
+            <div className="flex flex-col space-y-4">
+              <NavLinks />
+            </div>
+            
+            {user ? (
+              <div className="pt-4 border-t border-gray-100 flex flex-col space-y-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => navigate('/profile')}
+                  className="justify-start"
+                >
+                  <User size={16} className="mr-2" />
+                  {userProfile?.full_name || user.email}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={handleLogout}
+                  className="justify-start"
+                >
+                  <LogOut size={16} className="mr-2" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <div className="pt-4 border-t border-gray-100">
+                <Button 
+                  onClick={() => navigate('/auth')}
+                  className="w-full"
+                >
+                  Sign In
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
   );
 };
 
