@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import FixedSearchBar from "@/components/FixedSearchBar";
+import SearchBar from "@/components/SearchBar";
 import PropertyCard from "@/components/PropertyCard";
 import Footer from "@/components/Footer";
 import { getFilteredProperties } from "@/lib/mockData";
@@ -24,6 +25,7 @@ const PropertiesPage = () => {
   
   const propertiesPerPage = 9;
   
+  // Construct filter from URL params
   const getFiltersFromParams = (): PropertyFilter => {
     const filter: PropertyFilter = {};
     
@@ -39,21 +41,27 @@ const PropertiesPage = () => {
     return filter;
   };
   
+  // Load properties based on search params
   const loadProperties = (page = 1, append = false) => {
     setLoading(true);
     setError(null);
     
     try {
+      // Get filter from URL params
       const filter = getFiltersFromParams();
       
+      // In a real app, we would make an API call here
+      // For now, we're using mock data
       setTimeout(() => {
         const filteredProperties = getFilteredProperties(filter);
         setTotalResults(filteredProperties.length);
         
+        // Calculate pagination
         const startIndex = (page - 1) * propertiesPerPage;
         const endIndex = startIndex + propertiesPerPage;
         const paginatedResults = filteredProperties.slice(startIndex, endIndex);
         
+        // Update state
         if (append) {
           setProperties(prev => [...prev, ...paginatedResults]);
         } else {
@@ -63,7 +71,7 @@ const PropertiesPage = () => {
         setHasMore(endIndex < filteredProperties.length);
         setCurrentPage(page);
         setLoading(false);
-      }, 800);
+      }, 800); // Simulate network delay
     } catch (err) {
       setError("Failed to load properties. Please try again.");
       toast({
@@ -75,20 +83,26 @@ const PropertiesPage = () => {
     }
   };
   
+  // Handle search submission from the SearchBar
   const handleSearch = () => {
+    // Reset to first page when new search is performed
     setCurrentPage(1);
     loadProperties(1, false);
   };
   
+  // Load more properties when "Load More" is clicked
   const handleLoadMore = () => {
     const nextPage = currentPage + 1;
     loadProperties(nextPage, true);
   };
   
+  // Load properties on initial render and when search params change
   useEffect(() => {
+    // Reset to page 1 when search params change
     setCurrentPage(1);
     loadProperties(1, false);
     
+    // When URL params change, close the filters panel if it's open
     if (isFiltersOpen) {
       setIsFiltersOpen(false);
     }
@@ -96,6 +110,7 @@ const PropertiesPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams.toString()]);
   
+  // Construct search result title based on filters
   const getSearchResultTitle = () => {
     const filter = getFiltersFromParams();
     const parts = [];
@@ -124,11 +139,12 @@ const PropertiesPage = () => {
       <main className="flex-grow">
         <div className="bg-brand-blue/10 py-6">
           <div className="container mx-auto px-4">
-            <FixedSearchBar isExpanded onSearch={handleSearch} />
+            <SearchBar isExpanded onSearch={handleSearch} />
           </div>
         </div>
         
         <div className="container mx-auto px-4 py-8">
+          {/* Results header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -159,6 +175,7 @@ const PropertiesPage = () => {
             </div>
           </div>
           
+          {/* Loading state for initial load */}
           {loading && properties.length === 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, index) => (
@@ -179,6 +196,7 @@ const PropertiesPage = () => {
             </div>
           )}
           
+          {/* Error state */}
           {error && !loading && (
             <div className="text-center py-12">
               <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-4">
@@ -194,6 +212,7 @@ const PropertiesPage = () => {
             </div>
           )}
           
+          {/* No results state */}
           {!loading && !error && properties.length === 0 && (
             <div className="text-center py-16">
               <div className="bg-gray-100 rounded-lg p-8 max-w-lg mx-auto">
@@ -204,6 +223,7 @@ const PropertiesPage = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => {
+                    // Clear all filters by navigating to the base URL
                     window.history.pushState({}, "", "/properties");
                     loadProperties(1, false);
                   }}
@@ -216,6 +236,7 @@ const PropertiesPage = () => {
             </div>
           )}
           
+          {/* Results grid */}
           {!loading && !error && properties.length > 0 && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -224,6 +245,7 @@ const PropertiesPage = () => {
                 ))}
               </div>
               
+              {/* Load more button */}
               {hasMore && (
                 <div className="text-center mt-8">
                   <Button
@@ -255,6 +277,7 @@ const PropertiesPage = () => {
 
 export default PropertiesPage;
 
+// Utility function to conditionally merge class names
 function cn(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
