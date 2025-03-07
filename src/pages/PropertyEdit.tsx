@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -21,7 +20,7 @@ const PropertyEdit = () => {
     queryKey: ['property', id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('properties')
+        .from("properties")
         .select('*')
         .eq('id', id)
         .single();
@@ -107,11 +106,11 @@ const PropertyEdit = () => {
   }
 
   // Convert database schema to component props
-  const formattedProperty = {
+  const formattedProperty = property ? {
     ...property,
     zipCode: property.zip_code,
     areaUnit: property.area_unit,
-  };
+  } : null;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -30,7 +29,7 @@ const PropertyDetail = () => {
       try {
         // Try to fetch from Supabase first
         const { data, error } = await supabase
-          .from('properties')
+          .from("properties")
           .select('*')
           .eq('id', id)
           .single();
@@ -103,7 +102,7 @@ const PropertyDetail = () => {
     
     try {
       const { error } = await supabase
-        .from('properties')
+        .from("properties")
         .delete()
         .eq('id', id);
         

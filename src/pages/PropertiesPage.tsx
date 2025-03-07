@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,14 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 
 // Fallback to mock data if needed
 import { getFilteredProperties } from "@/lib/mockData";
-import { 
-  filterByPropertyType, 
-  filterByLocation, 
-  filterByMinPrice, 
-  filterByMaxPrice, 
-  filterByBedrooms, 
-  filterByBathrooms 
-} from "@/lib/mockFilterHelpers";
 
 const PropertiesPage = () => {
   const [searchParams] = useSearchParams();
@@ -61,7 +52,7 @@ const PropertiesPage = () => {
     try {
       // Start with Supabase query
       let query = supabase
-        .from('properties')
+        .from("properties")
         .select('*', { count: 'exact' })
         .eq('published', true);
       

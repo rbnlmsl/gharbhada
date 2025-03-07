@@ -185,7 +185,7 @@ const PropertyForm = ({ editMode = false, propertyId, initialData }: PropertyFor
       if (editMode && propertyId) {
         // Update existing property
         const { data, error } = await supabase
-          .from('properties')
+          .from("properties")
           .update(propertyData)
           .eq('id', propertyId)
           .select()
@@ -196,7 +196,7 @@ const PropertyForm = ({ editMode = false, propertyId, initialData }: PropertyFor
       } else {
         // Insert new property
         const { data, error } = await supabase
-          .from('properties')
+          .from("properties")
           .insert(propertyData)
           .select()
           .single();
