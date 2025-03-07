@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, MapPin, Home, BedDouble, Bath, Sliders } from "lucide-react";
+import { Search, MapPin, Home, BedDouble, Bath, Sliders, DollarSign } from "lucide-react";
 
 interface SearchBarProps {
   isExpanded?: boolean;
@@ -27,7 +27,18 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
   const [bathrooms, setBathrooms] = useState(searchParams.get("baths") || "any");
   const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
+  const [isFilterExpanded, setIsFilterExpanded] = useState(isExpanded);
   
+  // Reset the values if searchParams change
+  useEffect(() => {
+    setLocation(searchParams.get("location") || "");
+    setPropertyType(searchParams.get("type") || "any");
+    setBedrooms(searchParams.get("beds") || "any");
+    setBathrooms(searchParams.get("baths") || "any");
+    setMinPrice(searchParams.get("minPrice") || "");
+    setMaxPrice(searchParams.get("maxPrice") || "");
+  }, [searchParams]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -50,9 +61,13 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
     }
   };
   
+  const toggleFilters = () => {
+    setIsFilterExpanded(!isFilterExpanded);
+  };
+  
   return (
-    <form onSubmit={handleSearch} className={`bg-white rounded-lg shadow-md ${isExpanded ? 'p-6' : 'p-4'}`}>
-      <div className={`grid gap-4 ${isExpanded ? 'md:grid-cols-3 lg:grid-cols-6' : 'grid-cols-1 md:grid-cols-5'}`}>
+    <form onSubmit={handleSearch} className="bg-white rounded-lg shadow-md p-4">
+      <div className={`grid gap-4 ${isFilterExpanded ? 'grid-cols-1 md:grid-cols-3 lg:grid-cols-6' : 'grid-cols-1 md:grid-cols-5'}`}>
         {/* Location input */}
         <div className="relative">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
@@ -126,31 +141,37 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
         </div>
         
         {/* Price Range */}
-        {isExpanded && (
+        {isFilterExpanded && (
           <>
-            <div>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                <DollarSign size={18} />
+              </div>
               <Input
                 type="number"
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
                 placeholder="Min Price"
-                className="h-10"
+                className="pl-10 h-10"
               />
             </div>
-            <div>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                <DollarSign size={18} />
+              </div>
               <Input
                 type="number"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
                 placeholder="Max Price"
-                className="h-10"
+                className="pl-10 h-10"
               />
             </div>
           </>
         )}
         
         {/* Search Button */}
-        <div className={isExpanded ? "md:col-span-3 lg:col-span-1" : ""}>
+        <div className={isFilterExpanded ? "md:col-span-3 lg:col-span-1" : ""}>
           <Button type="submit" className="w-full">
             <Search size={18} className="mr-2" />
             Search
@@ -160,9 +181,14 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
       
       {!isExpanded && (
         <div className="mt-3 flex justify-center md:hidden">
-          <Button variant="outline" size="sm" className="text-sm">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-sm"
+            onClick={toggleFilters}
+          >
             <Sliders size={14} className="mr-1" />
-            More Filters
+            {isFilterExpanded ? "Less Filters" : "More Filters"}
           </Button>
         </div>
       )}

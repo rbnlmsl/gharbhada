@@ -17,6 +17,10 @@ const Index = () => {
     // In a real app, this would filter properties based on search params
     // For now, we'll just use the mock data
     setFilteredProperties(properties);
+    
+    // Navigate to properties page with search params
+    const queryString = new URLSearchParams(searchParams).toString();
+    window.location.href = `/properties${queryString ? `?${queryString}` : ''}`;
   };
 
   return (

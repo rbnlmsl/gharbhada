@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -75,7 +76,12 @@ const PropertiesPage = () => {
     }
   };
   
-  const handleSearch = () => {
+  const handleSearch = (searchParams: Record<string, string>) => {
+    // Update URL with new search params
+    const queryString = new URLSearchParams(searchParams).toString();
+    window.history.pushState({}, "", `/properties${queryString ? `?${queryString}` : ''}`);
+    
+    // Reset to page 1 and load properties
     setCurrentPage(1);
     loadProperties(1, false);
   };
