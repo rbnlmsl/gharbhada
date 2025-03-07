@@ -1,125 +1,83 @@
-
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase, typedSupabaseQuery } from "@/integrations/supabase/client";
-import { Property } from "@/types";
-import { PropertyRow } from "@/types/property-types";
-import { ChevronRight, Home, Edit, Trash } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { typedPropertyQuery } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import PropertyGallery from "@/components/PropertyGallery";
-import PropertyInfo from "@/components/PropertyInfo";
-import PropertyMap from "@/components/PropertyMap";
-import PropertyContact from "@/components/PropertyContact";
-import PropertyFeatures from "@/components/PropertyFeatures";
+import { Button } from "@/components/ui/button";
+import { MapPin, BedDouble, Bath, Move, Home, CheckCircle, XCircle, Edit, Trash2 } from "lucide-react";
 
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { toast } = useToast();
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const [isOwner, setIsOwner] = useState(false);
-  
-  // Fetch property data from Supabase
-  const { data: property, isLoading, error } = useQuery({
-    queryKey: ['property', id],
-    queryFn: async () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const [property, setProperty] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isPropertyOwner, setIsPropertyOwner] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const fetchProperty = async () => {
       try {
-        // Try to fetch from Supabase first
-        const { data, error } = await typedSupabaseQuery<PropertyRow>("properties")
+        setIsLoading(true);
+        
+        const { data: property, error } = await typedPropertyQuery()
           .select('*')
           .eq('id', id)
           .single();
-          
+        
         if (error) {
-          console.error("Supabase error:", error);
+          throw error;
+        }
+        
+        if (!property) {
           throw new Error("Property not found");
         }
         
-        // Format the data to match our Property type
-        const propertyData: Property = {
-          id: data.id,
-          title: data.title,
-          description: data.description,
-          price: data.price,
-          currency: data.currency,
-          address: data.address,
-          city: data.city,
-          zipCode: data.zip_code,
-          country: data.country,
-          type: data.type,
-          bedrooms: data.bedrooms,
-          bathrooms: data.bathrooms,
-          area: data.area,
-          areaUnit: data.area_unit,
-          features: data.features,
-          images: data.images,
-          agent: {
-            id: data.agent_id,
-            name: "Property Owner", // This should be fetched from profiles
-            email: "contact@example.com", // This should be fetched from profiles
-            phone: "+1234567890", // This should be fetched from profiles
-          },
-          published: data.published,
-          createdAt: data.created_at,
-          updatedAt: data.updated_at
-        };
-        
-        return propertyData;
-      } catch (e) {
-        // If Supabase fetch fails, try to get from mock data
-        // This fallback can be removed once all properties are in Supabase
-        const { properties } = await import("@/lib/mockData");
-        const prop = properties.find(p => p.id === id);
-        if (!prop) {
-          throw new Error("Property not found");
-        }
-        return prop;
+        setProperty(property);
+        setIsPropertyOwner(user?.id === property.agent_id);
+      } catch (error: any) {
+        console.error("Error fetching property:", error);
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
       }
-    },
-  });
+    };
 
-  // Check if current user is the owner of this property
-  useEffect(() => {
-    if (property && user && property.agent.id === user.id) {
-      setIsOwner(true);
-    } else {
-      setIsOwner(false);
+    if (id) {
+      fetchProperty();
     }
-  }, [property, user]);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [id]);
+  }, [id, user]);
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this property?")) {
-      return;
-    }
-    
     try {
-      const { error } = await typedSupabaseQuery<PropertyRow>("properties")
+      setIsDeleting(true);
+      
+      const { error } = await typedPropertyQuery()
         .delete()
         .eq('id', id);
-        
+      
       if (error) throw error;
       
       toast({
         title: "Property deleted",
-        description: "Your property has been successfully deleted.",
+        description: "The property has been successfully deleted."
       });
       
       navigate('/properties');
     } catch (error: any) {
+      console.error("Error deleting property:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete property",
-        variant: "destructive",
+        title: "Error deleting property",
+        description: error.message,
+        variant: "destructive"
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -128,26 +86,51 @@ const PropertyDetail = () => {
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navbar />
         <div className="container mx-auto px-4 py-8 flex-grow flex items-center justify-center">
-          <div className="animate-pulse text-2xl text-gray-500">Loading property details...</div>
+          <div className="text-center">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full inline-block mb-4"></div>
+            <p className="text-gray-500">Loading property details...</p>
+          </div>
         </div>
         <Footer />
       </div>
     );
   }
 
-  if (error || !property) {
+  if (error) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navbar />
         <div className="container mx-auto px-4 py-8 flex-grow">
-          <div className="bg-white p-8 rounded-lg shadow-md text-center">
-            <h1 className="text-2xl font-bold text-red-500 mb-4">Property Not Found</h1>
-            <p className="text-gray-600 mb-6">
-              We couldn't find the property you're looking for. It may have been removed or you might have followed an incorrect link.
-            </p>
-            <Button asChild>
-              <Link to="/">Return to Homepage</Link>
-            </Button>
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+            <p className="text-gray-700">{error}</p>
+            <button 
+              onClick={() => navigate('/properties')}
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-md"
+            >
+              Go Back to Properties
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!property) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 flex-grow">
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Property Not Found</h1>
+            <p className="text-gray-700">The requested property could not be found.</p>
+            <button 
+              onClick={() => navigate('/properties')}
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-md"
+            >
+              Go Back to Properties
+            </button>
           </div>
         </div>
         <Footer />
@@ -158,82 +141,127 @@ const PropertyDetail = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
-      
-      <main className="flex-grow">
-        <div className="container mx-auto px-4 py-4 md:py-8">
-          {/* Breadcrumbs */}
-          <nav className="flex items-center text-sm text-gray-500 mb-4">
-            <Link to="/" className="flex items-center hover:text-brand-blue transition-colors">
-              <Home size={16} className="mr-1" />
-              Home
-            </Link>
-            <ChevronRight size={16} className="mx-2" />
-            <Link to="/properties" className="hover:text-brand-blue transition-colors">Properties</Link>
-            <ChevronRight size={16} className="mx-2" />
-            <Link to={`/properties?location=${property.city}`} className="hover:text-brand-blue transition-colors">{property.city}</Link>
-            <ChevronRight size={16} className="mx-2" />
-            <span className="text-gray-800 font-medium truncate">{property.title}</span>
-          </nav>
-          
-          {/* Property Title and Owner Actions */}
-          <div className="mb-6 flex justify-between items-start">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{property.title}</h1>
-              <p className="text-gray-600 mt-1 flex items-center">
-                <span>{property.address}, {property.city}, {property.zipCode}</span>
-              </p>
-            </div>
-            {isOwner && (
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate(`/property/edit/${property.id}`)}
-                >
-                  <Edit size={16} className="mr-1" />
-                  Edit
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={handleDelete}
-                >
-                  <Trash size={16} className="mr-1" />
-                  Delete
-                </Button>
+      <div className="container mx-auto px-4 py-8 flex-grow">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Property Images */}
+          <div>
+            {property.images && property.images.length > 0 ? (
+              <div className="relative">
+                <img
+                  src={property.images[0]}
+                  alt={property.title}
+                  className="w-full h-64 object-cover rounded-xl shadow-md"
+                />
+                {property.images.length > 1 && (
+                  <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full px-3 py-1 text-sm">
+                    + {property.images.length - 1} more
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-gray-200 h-64 rounded-xl flex items-center justify-center text-gray-500 shadow-md">
+                No Image Available
               </div>
             )}
           </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              {/* Property Gallery */}
-              <PropertyGallery images={property.images} title={property.title} />
-              
-              {/* Property Info */}
-              <div className="mt-6">
-                <PropertyInfo property={property} />
-              </div>
-              
-              {/* Property Features */}
-              <div className="mt-6">
-                <PropertyFeatures property={property} />
-              </div>
-              
-              {/* Property Map */}
-              <div className="mt-6">
-                <PropertyMap property={property} />
-              </div>
+
+          {/* Property Details */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold text-gray-900">{property.title}</h1>
+              {property.published ? (
+                <div className="flex items-center text-green-600">
+                  <CheckCircle className="mr-1 w-5 h-5" />
+                  Published
+                </div>
+              ) : (
+                <div className="flex items-center text-red-600">
+                  <XCircle className="mr-1 w-5 h-5" />
+                  Unpublished
+                </div>
+              )}
             </div>
             
-            {/* Sidebar - Contact Info */}
-            <div className="lg:col-span-1">
-              <PropertyContact agent={property.agent} property={property} />
+            <div className="text-gray-600 flex items-center">
+              <MapPin className="mr-2 w-4 h-4" />
+              {property.address}, {property.city}, {property.zip_code}, {property.country}
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <BedDouble className="mr-2 w-4 h-4" />
+                {property.bedrooms} Bedrooms
+              </div>
+              <div className="flex items-center">
+                <Bath className="mr-2 w-4 h-4" />
+                {property.bathrooms} Bathrooms
+              </div>
+              <div className="flex items-center">
+                <Move className="mr-2 w-4 h-4" />
+                {property.area} {property.area_unit}
+              </div>
+            </div>
+
+            <div className="text-gray-700">
+              <h2 className="text-lg font-semibold mb-2">Description</h2>
+              <p>{property.description}</p>
+            </div>
+
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Features</h2>
+              {property.features && property.features.length > 0 ? (
+                <ul className="list-disc list-inside text-gray-600">
+                  {property.features.map((feature: string, index: number) => (
+                    <li key={index}>{feature}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">No features listed.</p>
+              )}
+            </div>
+
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {property.currency} {property.price}
+                </h2>
+                <p className="text-gray-500">Price</p>
+              </div>
+              
+              {isPropertyOwner && (
+                <div className="space-x-2">
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/property/edit/${id}`)}
+                  >
+                    <Edit className="mr-2 w-4 h-4" />
+                    Edit
+                  </Button>
+                  <Button 
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <span className="animate-spin mr-2">●</span>
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="mr-2 w-4 h-4" />
+                        Delete
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </main>
-      
+      </div>
       <Footer />
     </div>
   );
