@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -28,14 +27,45 @@ const PropertiesPage = () => {
   const getFiltersFromParams = (): PropertyFilter => {
     const filter: PropertyFilter = {};
     
-    if (searchParams.has("location")) filter.location = searchParams.get("location") || undefined;
-    if (searchParams.has("minPrice")) filter.priceMin = Number(searchParams.get("minPrice")) || undefined;
-    if (searchParams.has("maxPrice")) filter.priceMax = Number(searchParams.get("maxPrice")) || undefined;
-    if (searchParams.has("beds")) filter.bedrooms = Number(searchParams.get("beds")) || undefined;
-    if (searchParams.has("type")) filter.propertyType = searchParams.get("type") || undefined;
-    if (searchParams.has("features")) filter.features = searchParams.get("features")?.split(",") || undefined;
-    if (searchParams.has("availability")) filter.availability = searchParams.get("availability") || undefined;
-    if (searchParams.has("sort")) filter.sortBy = searchParams.get("sort") || undefined;
+    if (searchParams.has("location")) {
+      const location = searchParams.get("location") || undefined;
+      filter.location = location;
+    }
+    
+    if (searchParams.has("minPrice")) {
+      const minPrice = Number(searchParams.get("minPrice")) || undefined;
+      filter.priceMin = minPrice;
+    }
+    
+    if (searchParams.has("maxPrice")) {
+      const maxPrice = Number(searchParams.get("maxPrice")) || undefined;
+      filter.priceMax = maxPrice;
+    }
+    
+    if (searchParams.has("beds")) {
+      const beds = Number(searchParams.get("beds")) || undefined;
+      filter.bedrooms = beds;
+    }
+    
+    if (searchParams.has("type")) {
+      const type = searchParams.get("type") || undefined;
+      filter.propertyType = type;
+    }
+    
+    if (searchParams.has("features")) {
+      const features = searchParams.get("features")?.split(",") || undefined;
+      filter.features = features;
+    }
+    
+    if (searchParams.has("availability")) {
+      const availability = searchParams.get("availability") || undefined;
+      filter.availability = availability;
+    }
+    
+    if (searchParams.has("sort")) {
+      const sort = searchParams.get("sort") || undefined;
+      filter.sortBy = sort;
+    }
     
     return filter;
   };
@@ -46,6 +76,7 @@ const PropertiesPage = () => {
     
     try {
       const filter = getFiltersFromParams();
+      console.log("Applying filters:", filter);
       
       setTimeout(() => {
         const filteredProperties = getFilteredProperties(filter);

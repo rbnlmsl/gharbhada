@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,6 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
   const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
   const [isFilterExpanded, setIsFilterExpanded] = useState(isExpanded);
   
-  // Reset the values if searchParams change
   useEffect(() => {
     setLocation(searchParams.get("location") || "");
     setPropertyType(searchParams.get("type") || "any");
@@ -42,7 +40,6 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Build search params object
     const params: Record<string, string> = {};
     if (location) params.location = location;
     if (propertyType && propertyType !== "any") params.type = propertyType;
@@ -51,11 +48,11 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
     if (minPrice) params.minPrice = minPrice;
     if (maxPrice) params.maxPrice = maxPrice;
     
-    // Call onSearch callback if provided
+    console.log("Search params being sent:", params);
+    
     if (onSearch) {
       onSearch(params);
     } else {
-      // Navigate to properties page with search params
       const queryString = new URLSearchParams(params).toString();
       navigate(`/properties${queryString ? `?${queryString}` : ''}`);
     }
@@ -68,7 +65,6 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
   return (
     <form onSubmit={handleSearch} className="bg-white rounded-lg shadow-md p-4">
       <div className={`grid gap-4 ${isFilterExpanded ? 'grid-cols-1 md:grid-cols-3 lg:grid-cols-6' : 'grid-cols-1 md:grid-cols-5'}`}>
-        {/* Location input */}
         <div className="relative">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
             <MapPin size={18} />
@@ -81,7 +77,6 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
           />
         </div>
         
-        {/* Property Type Select */}
         <div>
           <Select value={propertyType} onValueChange={setPropertyType}>
             <SelectTrigger className="h-10">
@@ -101,7 +96,6 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
           </Select>
         </div>
         
-        {/* Bedrooms Select */}
         <div>
           <Select value={bedrooms} onValueChange={setBedrooms}>
             <SelectTrigger className="h-10">
@@ -121,7 +115,6 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
           </Select>
         </div>
         
-        {/* Bathrooms Select */}
         <div>
           <Select value={bathrooms} onValueChange={setBathrooms}>
             <SelectTrigger className="h-10">
@@ -140,7 +133,6 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
           </Select>
         </div>
         
-        {/* Price Range */}
         {isFilterExpanded && (
           <>
             <div className="relative">
@@ -170,7 +162,6 @@ const FixedSearchBar = ({ isExpanded = false, onSearch }: SearchBarProps) => {
           </>
         )}
         
-        {/* Search Button */}
         <div className={isFilterExpanded ? "md:col-span-3 lg:col-span-1" : ""}>
           <Button type="submit" className="w-full">
             <Search size={18} className="mr-2" />
