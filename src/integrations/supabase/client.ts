@@ -12,6 +12,9 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 // Helper function to type-cast Supabase queries for properties table
+// Since properties is not in the Database type, we need to use a workaround
 export const typedPropertyQuery = () => {
-  return supabase.from('properties') as unknown as ReturnType<typeof supabase.from<PropertyRow>>;
+  // This is a type assertion to bypass the TypeScript restrictions
+  // We know the table exists in Supabase, just not in our type definitions
+  return supabase.from('properties') as any;
 };

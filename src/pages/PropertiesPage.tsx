@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase, typedPropertyQuery } from "@/integrations/supabase/client";
+import { typedPropertyQuery } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
