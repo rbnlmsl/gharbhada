@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
@@ -28,7 +28,6 @@ function App() {
             <Route path="/property/upload" element={<PropertyUpload />} />
             <Route path="/property/edit/:id" element={<PropertyEdit />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/post-property" element={<Navigate to="/property/upload" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />

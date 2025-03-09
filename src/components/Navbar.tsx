@@ -13,6 +13,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  // Detect scroll position for navbar styling
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10;
@@ -25,12 +26,14 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [scrolled]);
 
+  // Handle responsive menu
   useEffect(() => {
     if (!isMobile && isOpen) {
       setIsOpen(false);
     }
   }, [isMobile, isOpen]);
 
+  // Close menu when route changes
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
@@ -62,16 +65,20 @@ const Navbar = () => {
       }`}
     >
       <div className="container px-4 mx-auto flex justify-between items-center">
+        {/* Logo */}
         <Link to="/" className="flex items-center space-x-2">
           <Home className="text-brand-blue w-6 h-6" />
           <span className="font-bold text-xl text-gray-900">RentEase</span>
         </Link>
 
+        {/* Desktop Menu */}
         <nav className="hidden md:flex items-center space-x-8">
           <NavLinks />
         </nav>
 
+        {/* Right side buttons */}
         <div className="flex items-center">
+          {/* Desktop buttons */}
           <div className="hidden md:flex items-center space-x-3">
             <Link to="/properties">
               <Button variant="outline" size="sm" className="flex items-center">
@@ -115,6 +122,7 @@ const Navbar = () => {
             )}
           </div>
           
+          {/* Mobile menu button */}
           <button 
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden ml-2 p-2 text-gray-700 hover:text-brand-blue transition-colors"
@@ -124,6 +132,7 @@ const Navbar = () => {
         </div>
       </div>
 
+      {/* Mobile menu */}
       {isOpen && (
         <div className="md:hidden bg-white border-t">
           <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">

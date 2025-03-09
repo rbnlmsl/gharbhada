@@ -1,9 +1,7 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { supabase, typedPropertyQuery } from "@/integrations/supabase/client";
-import { PropertyRow } from "@/types/property-types";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -153,7 +151,6 @@ const PropertyForm = ({ editMode = false, propertyId, initialData }: PropertyFor
         description: "You must be logged in as a landlord or agent to list a property.",
         variant: "destructive",
       });
-      navigate('/auth');
       return;
     }
 
@@ -187,7 +184,8 @@ const PropertyForm = ({ editMode = false, propertyId, initialData }: PropertyFor
       let result;
       if (editMode && propertyId) {
         // Update existing property
-        const { data, error } = await typedPropertyQuery()
+        const { data, error } = await supabase
+          .from("properties")
           .update(propertyData)
           .eq('id', propertyId)
           .select()
@@ -197,7 +195,8 @@ const PropertyForm = ({ editMode = false, propertyId, initialData }: PropertyFor
         result = data;
       } else {
         // Insert new property
-        const { data, error } = await typedPropertyQuery()
+        const { data, error } = await supabase
+          .from("properties")
           .insert(propertyData)
           .select()
           .single();

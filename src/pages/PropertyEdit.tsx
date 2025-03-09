@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { typedPropertyQuery } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -10,72 +10,50 @@ import PropertyForm from "@/components/PropertyForm";
 
 const PropertyEdit = () => {
   const { id } = useParams<{ id: string }>();
+  const { user, userProfile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { user, userProfile, loading } = useAuth();
   const { toast } = useToast();
-  const [property, setProperty] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
+  // Fetch property data
+  const { data: property, isLoading, error } = useQuery({
+    queryKey: ['property', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("properties")
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && !!user,
+  });
+
+  // Check if user is authorized to edit this property
   useEffect(() => {
-    const fetchProperty = async () => {
-      try {
-        const { data, error } = await typedPropertyQuery()
-          .select('*')
-          .eq('id', id)
-          .single();
-        
-        if (error) throw error;
-        if (!data) throw new Error("Property not found");
-        
-        // Check if current user is the owner of the property
-        if (user && data.agent_id !== user.id) {
-          toast({
-            title: "Unauthorized",
-            description: "You don't have permission to edit this property.",
-            variant: "destructive",
-          });
-          navigate(`/property/${id}`);
-          return;
-        }
-        
-        setProperty(data);
-      } catch (error: any) {
-        console.error("Error fetching property:", error);
-        setError(error.message);
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // Redirect if user is not logged in
-    if (!loading) {
-      if (!user) {
-        toast({
-          title: "Authentication Required",
-          description: "You need to sign in to edit a property.",
-          variant: "destructive",
-        });
-        navigate('/auth');
-      } else if (userProfile && userProfile.role !== 'landlord' && userProfile.role !== 'agent') {
+    if (!authLoading && !user) {
+      // Not logged in
+      navigate('/auth');
+      return;
+    }
+    
+    if (property && user) {
+      if (property.agent_id === user.id) {
+        setIsAuthorized(true);
+      } else {
         toast({
           title: "Unauthorized",
-          description: "Only landlords and agents can edit properties.",
+          description: "You don't have permission to edit this property.",
           variant: "destructive",
         });
-        navigate('/');
-      } else if (id) {
-        fetchProperty();
+        navigate('/property/' + id);
       }
     }
-  }, [id, user, userProfile, loading, navigate, toast]);
+  }, [property, user, authLoading, id, navigate, toast]);
 
-  if (loading || isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navbar />
@@ -90,19 +68,21 @@ const PropertyEdit = () => {
     );
   }
 
-  if (error) {
+  if (error || !property) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navbar />
         <div className="container mx-auto px-4 py-8 flex-grow">
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
-            <p className="text-gray-700">{error}</p>
+          <div className="bg-white p-8 rounded-lg shadow-md text-center">
+            <h1 className="text-2xl font-bold text-red-500 mb-4">Property Not Found</h1>
+            <p className="text-gray-600 mb-6">
+              We couldn't find the property you're trying to edit.
+            </p>
             <button 
-              onClick={() => navigate('/properties')}
-              className="mt-4 px-4 py-2 bg-primary text-white rounded-md"
+              onClick={() => navigate('/')}
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
             >
-              Go Back to Properties
+              Return to Homepage
             </button>
           </div>
         </div>
@@ -111,6 +91,27 @@ const PropertyEdit = () => {
     );
   }
 
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-500">Checking permissions...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Convert database schema to component props
+  const formattedProperty = property ? {
+    ...property,
+    zipCode: property.zip_code,
+    areaUnit: property.area_unit,
+  } : null;
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
@@ -118,29 +119,15 @@ const PropertyEdit = () => {
         <div className="max-w-4xl mx-auto">
           <div className="bg-white p-6 md:p-8 rounded-xl shadow">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Edit Property</h1>
-            {property && (
-              <PropertyForm 
-                editMode={true}
-                propertyId={id}
-                initialData={{
-                  title: property.title,
-                  type: property.type,
-                  address: property.address,
-                  city: property.city,
-                  zipCode: property.zip_code,
-                  country: property.country,
-                  description: property.description,
-                  price: property.price.toString(),
-                  currency: property.currency,
-                  bedrooms: property.bedrooms.toString(),
-                  bathrooms: property.bathrooms.toString(),
-                  area: property.area.toString(),
-                  areaUnit: property.area_unit,
-                  features: property.features || [],
-                  images: property.images || [],
-                }}
-              />
-            )}
+            <p className="text-gray-600 mb-8">
+              Update your property information below.
+            </p>
+            
+            <PropertyForm 
+              editMode={true} 
+              propertyId={id} 
+              initialData={formattedProperty} 
+            />
           </div>
         </div>
       </div>
